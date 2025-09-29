@@ -54,7 +54,7 @@ const validateUserLogin = [
   handleValidationErrors
 ];
 
-// Schedule validation
+// Schedule validation (create)
 const validateSchedule = [
   body('routeId')
     .isMongoId()
@@ -72,6 +72,36 @@ const validateSchedule = [
   body('vehicleType')
     .isIn(['sitting', 'sleeping'])
     .withMessage('Vehicle type must be either sitting or sleeping'),
+  handleValidationErrors
+];
+
+// Schedule validation (update - partial allowed)
+const validateScheduleUpdate = [
+  body('routeId')
+    .optional()
+    .isMongoId()
+    .withMessage('Valid route ID is required'),
+  body('departureTime')
+    .optional()
+    .isISO8601()
+    .withMessage('Valid departure time is required'),
+  body('arrivalTime')
+    .optional()
+    .isISO8601()
+    .withMessage('Valid arrival time is required'),
+  body('price')
+    .optional()
+    .isNumeric()
+    .isFloat({ min: 0 })
+    .withMessage('Price must be a positive number'),
+  body('vehicleType')
+    .optional()
+    .isIn(['sitting', 'sleeping'])
+    .withMessage('Vehicle type must be either sitting or sleeping'),
+  body('status')
+    .optional()
+    .isIn(['active', 'inactive', 'cancelled'])
+    .withMessage('Status must be active, inactive, or cancelled'),
   handleValidationErrors
 ];
 
@@ -112,5 +142,6 @@ module.exports = {
   validateUserRegistration,
   validateUserLogin,
   validateSchedule,
+  validateScheduleUpdate,
   validateTicketBooking
 };
