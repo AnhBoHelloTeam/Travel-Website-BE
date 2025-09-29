@@ -1,5 +1,4 @@
 const User = require('../models/User');
-const Business = require('../models/Business');
 
 // GET /api/admin/users
 const listUsers = async (req, res) => {
@@ -25,21 +24,27 @@ const listUsers = async (req, res) => {
   }
 };
 
-// GET /api/admin/businesses
+// GET /api/admin/businesses (from users where role = 'business')
 const listBusinesses = async (req, res) => {
   try {
-    const { name, status, ownerId, page = 1, limit = 20, sort = '-createdAt' } = req.query;
-    const filter = {};
-    if (name) filter.name = new RegExp(name, 'i');
-    if (status) filter.status = status;
-    if (ownerId) filter.ownerId = ownerId;
+    const { email, name, isActive, page = 1, limit = 20, sort = '-createdAt' } = req.query;
+    const filter = { role: 'business' };
+    if (email) filter.email = new RegExp(email, 'i');
+    if (typeof isActive !== 'undefined') filter.isActive = isActive === 'true';
+    // name filter checks profile firstName/lastName concatenation
+    if (name) {
+      filter.$or = [
+        { 'profile.firstName': new RegExp(name, 'i') },
+        { 'profile.lastName': new RegExp(name, 'i') }
+      ];
+    }
 
     const pageNum = Math.max(parseInt(page, 10), 1);
     const pageSize = Math.min(Math.max(parseInt(limit, 10), 1), 100);
 
     const [items, total] = await Promise.all([
-      Business.find(filter).sort(sort).skip((pageNum - 1) * pageSize).limit(pageSize),
-      Business.countDocuments(filter)
+      User.find(filter).sort(sort).skip((pageNum - 1) * pageSize).limit(pageSize),
+      User.countDocuments(filter)
     ]);
 
     res.json({ success: true, data: items, pagination: { page: pageNum, limit: pageSize, total, totalPages: Math.ceil(total / pageSize) } });
