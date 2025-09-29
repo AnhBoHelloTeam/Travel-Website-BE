@@ -31,8 +31,10 @@ const validateUserRegistration = [
     .trim()
     .withMessage('Last name is required'),
   body('profile.phone')
-    .isMobilePhone('vi-VN')
-    .withMessage('Please provide a valid Vietnamese phone number'),
+    .isString()
+    .trim()
+    .matches(/^\+?[0-9\s\-]{7,15}$/)
+    .withMessage('Please provide a valid phone number'),
   body('role')
     .optional()
     .isIn(['customer', 'business'])
@@ -91,8 +93,10 @@ const validateTicketBooking = [
     .trim()
     .withMessage('Passenger last name is required'),
   body('passengerInfo.phone')
-    .isMobilePhone('vi-VN')
-    .withMessage('Please provide a valid Vietnamese phone number'),
+    .isString()
+    .trim()
+    .matches(/^\+?[0-9\s\-]{7,15}$/)
+    .withMessage('Please provide a valid phone number'),
   body('passengerInfo.email')
     .isEmail()
     .normalizeEmail()
