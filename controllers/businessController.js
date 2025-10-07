@@ -6,7 +6,7 @@ const User = require('../models/User')
 const getMySchedules = async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query
-    const businessId = req.user.userId
+    const businessId = String(req.user._id)
 
     const filter = { businessId }
     if (status) filter.status = status
@@ -40,7 +40,7 @@ const getMySchedules = async (req, res) => {
 // Thống kê doanh thu và vé
 const getBusinessStats = async (req, res) => {
   try {
-    const businessId = req.user.userId
+    const businessId = String(req.user._id)
 
     // Tổng doanh thu
     const revenueResult = await Ticket.aggregate([
@@ -52,6 +52,7 @@ const getBusinessStats = async (req, res) => {
           as: 'schedule'
         }
       },
+      { $unwind: '$schedule' },
       {
         $match: {
           'schedule.businessId': businessId,
@@ -77,6 +78,7 @@ const getBusinessStats = async (req, res) => {
           as: 'schedule'
         }
       },
+      { $unwind: '$schedule' },
       {
         $match: {
           'schedule.businessId': businessId,
@@ -109,6 +111,7 @@ const getBusinessStats = async (req, res) => {
           as: 'schedule'
         }
       },
+      { $unwind: '$schedule' },
       {
         $match: {
           'schedule.businessId': businessId
@@ -148,7 +151,7 @@ const getBusinessStats = async (req, res) => {
 // Cập nhật thông tin business
 const updateBusinessProfile = async (req, res) => {
   try {
-    const businessId = req.user.userId
+    const businessId = req.user._id
     const { profile } = req.body
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -181,7 +184,7 @@ const updateBusinessProfile = async (req, res) => {
 // Lấy thông tin business
 const getBusinessProfile = async (req, res) => {
   try {
-    const businessId = req.user.userId
+    const businessId = req.user._id
 
     const business = await User.findById(businessId)
     if (!business) {
