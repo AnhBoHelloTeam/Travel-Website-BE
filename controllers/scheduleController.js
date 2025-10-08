@@ -65,7 +65,11 @@ const createSchedule = async (req, res) => {
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const payload = req.body;
+    const payload = { ...req.body };
+    // Enforce business ownership
+    if (req.user && req.user.role === 'business') {
+      payload.businessId = String(req.user._id);
+    }
     const schedule = await Schedule.create(payload);
 
     res.status(201).json({ success: true, data: schedule });
@@ -97,9 +101,23 @@ const updateScheduleById = async (req, res) => {
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
+    // Ownership guard for business role
+    const existing = await Schedule.findById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Schedule not found' });
+    }
+    if (req.user && req.user.role === 'business') {
+      if (String(existing.businessId) !== String(req.user._id)) {
+        return res.status(403).json({ success: false, message: 'You do not own this schedule' });
+      }
+    }
+    const update = { ...req.body };
+    if (req.user && req.user.role === 'business') {
+      delete update.businessId;
+    }
     const schedule = await Schedule.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      update,
       { new: true, runValidators: true }
     );
     if (!schedule) {
@@ -115,10 +133,16 @@ const updateScheduleById = async (req, res) => {
 // DELETE /api/schedules/:id
 const deleteScheduleById = async (req, res) => {
   try {
-    const schedule = await Schedule.findByIdAndDelete(req.params.id);
-    if (!schedule) {
+    const existing = await Schedule.findById(req.params.id);
+    if (!existing) {
       return res.status(404).json({ success: false, message: 'Schedule not found' });
     }
+    if (req.user && req.user.role === 'business') {
+      if (String(existing.businessId) !== String(req.user._id)) {
+        return res.status(403).json({ success: false, message: 'You do not own this schedule' });
+      }
+    }
+    await Schedule.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Schedule deleted successfully' });
   } catch (error) {
     console.error('Delete schedule error:', error);
