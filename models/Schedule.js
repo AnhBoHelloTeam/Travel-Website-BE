@@ -24,6 +24,21 @@ const scheduleSchema = new mongoose.Schema({
     enum: ['sitting', 'sleeping'],
     required: [true, 'Vehicle type is required']
   },
+  vehicleCategory: {
+    type: String,
+    enum: ['bus16', 'bus32', 'limousine', 'sleeper', 'sitting'],
+    default: 'sitting',
+    index: true
+  },
+  capacity: {
+    type: Number,
+    default: 40,
+    min: [1, 'Capacity must be positive']
+  },
+  seatLayout: {
+    type: String, // e.g., '2-2', '2-1'
+    default: '2-2'
+  },
   seats: [{
     seatNumber: {
       type: String,

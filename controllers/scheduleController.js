@@ -21,6 +21,12 @@ const listSchedules = async (req, res) => {
     if (routeId) filters.routeId = routeId;
     if (businessId) filters.businessId = businessId;
     if (vehicleType) filters.vehicleType = vehicleType;
+    if (req.query.vehicleCategory) filters.vehicleCategory = req.query.vehicleCategory;
+    if (req.query.capacityMin || req.query.capacityMax) {
+      filters.capacity = {};
+      if (req.query.capacityMin) filters.capacity.$gte = Number(req.query.capacityMin);
+      if (req.query.capacityMax) filters.capacity.$lte = Number(req.query.capacityMax);
+    }
     if (status) filters.status = status;
 
     if (date) {
@@ -69,6 +75,15 @@ const createSchedule = async (req, res) => {
     // Enforce business ownership
     if (req.user && req.user.role === 'business') {
       payload.businessId = String(req.user._id);
+    }
+    // Auto generate seats by capacity if not provided
+    if ((!payload.seats || payload.seats.length === 0) && payload.capacity) {
+      const total = Number(payload.capacity) || 0;
+      const seats = [];
+      for (let i = 1; i <= total; i++) {
+        seats.push({ seatNumber: `S${i}`, isAvailable: true, seatType: 'normal' });
+      }
+      payload.seats = seats;
     }
     const schedule = await Schedule.create(payload);
 
