@@ -72,6 +72,19 @@ const validateSchedule = [
   body('vehicleType')
     .isIn(['sitting', 'sleeping'])
     .withMessage('Vehicle type must be either sitting or sleeping'),
+  body('vehicleCategory')
+    .optional()
+    .isIn(['bus16', 'bus32', 'limousine', 'sleeper', 'sitting'])
+    .withMessage('Invalid vehicle category'),
+  body('capacity')
+    .optional()
+    .isNumeric()
+    .isFloat({ min: 1 })
+    .withMessage('Capacity must be positive'),
+  body('seatLayout')
+    .optional()
+    .isString()
+    .withMessage('Seat layout must be string'),
   handleValidationErrors
 ];
 
@@ -98,6 +111,19 @@ const validateScheduleUpdate = [
     .optional()
     .isIn(['sitting', 'sleeping'])
     .withMessage('Vehicle type must be either sitting or sleeping'),
+  body('vehicleCategory')
+    .optional()
+    .isIn(['bus16', 'bus32', 'limousine', 'sleeper', 'sitting'])
+    .withMessage('Invalid vehicle category'),
+  body('capacity')
+    .optional()
+    .isNumeric()
+    .isFloat({ min: 1 })
+    .withMessage('Capacity must be positive'),
+  body('seatLayout')
+    .optional()
+    .isString()
+    .withMessage('Seat layout must be string'),
   body('status')
     .optional()
     .isIn(['active', 'inactive', 'cancelled'])
