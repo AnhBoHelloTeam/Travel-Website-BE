@@ -26,10 +26,26 @@ const routeSchema = new mongoose.Schema({
       type: String,
       required: true
     },
-    address: String,
+    address: {
+      type: String,
+      required: true
+    },
+    type: {
+      type: String,
+      enum: ['bus_station', 'office', 'landmark', 'highway'],
+      default: 'bus_station'
+    },
     order: {
       type: Number,
       required: true
+    },
+    estimatedTime: {
+      type: Number, // minutes from departure
+      required: true
+    },
+    isActive: {
+      type: Boolean,
+      default: true
     }
   }],
   isActive: {
