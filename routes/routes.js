@@ -25,4 +25,33 @@ router.get('/', async (req, res) => {
   }
 })
 
+// GET /api/routes/:id/stops - Get stops for a specific route
+router.get('/:id/stops', async (req, res) => {
+  try {
+    const route = await Route.findById(req.params.id)
+    if (!route) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Route not found' 
+      })
+    }
+    
+    // Return only active stops, sorted by order
+    const activeStops = route.stops
+      .filter(stop => stop.isActive)
+      .sort((a, b) => a.order - b.order)
+    
+    res.json({ 
+      success: true, 
+      data: activeStops 
+    })
+  } catch (error) {
+    console.error('Get route stops error:', error)
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch route stops' 
+    })
+  }
+})
+
 module.exports = router
