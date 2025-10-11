@@ -9,7 +9,7 @@ const seatLockKey = (scheduleId, seatNumber) => `seat_lock:${scheduleId}:${seatN
 // Reserve a seat: set Redis lock for 5 minutes and create a pending ticket
 const createTicket = async (req, res) => {
   try {
-    const { scheduleId, seatNumber, passengerInfo, paymentInfo } = req.body;
+    const { scheduleId, seatNumber, passengerInfo, paymentInfo, pickupPoint, dropoffPoint } = req.body;
 
     // Ensure schedule exists and seat is still available
     const schedule = await Schedule.findById(scheduleId);
@@ -43,7 +43,9 @@ const createTicket = async (req, res) => {
       seatNumber,
       status: 'pending',
       passengerInfo,
-      paymentInfo
+      paymentInfo,
+      pickupPoint,
+      dropoffPoint
     });
 
     // Lock seat in Redis for 5 minutes (300 seconds)

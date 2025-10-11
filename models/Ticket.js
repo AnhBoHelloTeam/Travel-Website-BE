@@ -20,6 +20,35 @@ const ticketSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'cancelled', 'expired'],
     default: 'pending'
   },
+  // NEW: Pickup and dropoff points
+  pickupPoint: {
+    name: {
+      type: String,
+      required: true
+    },
+    address: {
+      type: String,
+      required: true
+    },
+    estimatedTime: {
+      type: Number, // minutes from departure
+      required: true
+    }
+  },
+  dropoffPoint: {
+    name: {
+      type: String,
+      required: true
+    },
+    address: {
+      type: String,
+      required: true
+    },
+    estimatedTime: {
+      type: Number, // minutes from departure
+      required: true
+    }
+  },
   passengerInfo: {
     firstName: {
       type: String,
