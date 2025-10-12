@@ -79,9 +79,29 @@ const createSchedule = async (req, res) => {
     // Auto generate seats by capacity if not provided
     if ((!payload.seats || payload.seats.length === 0) && payload.capacity) {
       const total = Number(payload.capacity) || 0;
+      const seatLayout = payload.seatLayout || '2-2';
       const seats = [];
-      for (let i = 1; i <= total; i++) {
-        seats.push({ seatNumber: `S${i}`, isAvailable: true, seatType: 'normal' });
+      
+      // Parse seat layout (e.g., "2-2" -> [2, 2], "2-1" -> [2, 1])
+      const layoutParts = seatLayout.split('-').map(p => parseInt(p.trim(), 10)).filter(n => !isNaN(n));
+      const colsPerRow = layoutParts.length > 0 ? layoutParts.reduce((sum, val) => sum + val, 0) : 4;
+      
+      let seatIndex = 1;
+      for (let row = 1; row <= Math.ceil(total / colsPerRow); row++) {
+        for (let col = 0; col < colsPerRow && seatIndex <= total; col++) {
+          const colChar = String.fromCharCode(65 + col); // A, B, C, D...
+          const seatNumber = `${row}${colChar}`;
+          
+          // Determine seat type based on position (first row = VIP, rest = normal)
+          const seatType = row === 1 ? 'vip' : 'normal';
+          
+          seats.push({
+            seatNumber,
+            isAvailable: true,
+            seatType
+          });
+          seatIndex++;
+        }
       }
       payload.seats = seats;
     }
