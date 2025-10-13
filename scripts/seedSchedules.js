@@ -56,56 +56,56 @@ async function seedSchedules() {
     await Schedule.deleteMany({});
     console.log('Cleared existing schedules');
 
-    const sampleSchedules = [
-      {
-        routeId: routes[0]._id,
-        departureTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-        arrivalTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000), // +3 hours
-        price: 250000,
-        vehicleType: 'sitting',
-        vehicleCategory: 'bus32',
-        capacity: 32,
-        seatLayout: '2-2',
-        businessId: businessUsers[0]._id,
-        status: 'active'
-      },
-      {
-        routeId: routes[0]._id,
-        departureTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Day after tomorrow
-        arrivalTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000),
-        price: 300000,
-        vehicleType: 'sleeping',
-        vehicleCategory: 'sleeper',
-        capacity: 40,
-        seatLayout: '2-1-2',
-        businessId: businessUsers[0]._id,
-        status: 'active'
-      },
-      {
-        routeId: routes[1] ? routes[1]._id : routes[0]._id,
-        departureTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        arrivalTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000),
-        price: 500000,
-        vehicleType: 'sitting',
-        vehicleCategory: 'limousine',
-        capacity: 12,
-        seatLayout: '2-1',
-        businessId: businessUsers[0]._id,
-        status: 'active'
-      },
-      {
-        routeId: routes[0]._id,
-        departureTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
-        arrivalTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000),
-        price: 200000,
-        vehicleType: 'sitting',
-        vehicleCategory: 'bus16',
-        capacity: 16,
-        seatLayout: '2-2',
-        businessId: businessUsers[0]._id,
-        status: 'active'
-      }
-    ];
+    // Generate schedules for next 7 days
+    const sampleSchedules = []
+    const baseDate = new Date()
+    
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+      const currentDate = new Date(baseDate)
+      currentDate.setDate(baseDate.getDate() + dayOffset)
+      
+      // Multiple schedules per day
+      const schedulesPerDay = [
+        {
+          routeId: routes[0]._id,
+          departureTime: new Date(currentDate.setHours(8, 0, 0, 0)),
+          arrivalTime: new Date(currentDate.getTime() + 3 * 60 * 60 * 1000),
+          price: 250000,
+          vehicleType: 'sitting',
+          vehicleCategory: 'bus32',
+          capacity: 32,
+          seatLayout: '2-2',
+          businessId: businessUsers[0]._id,
+          status: 'active'
+        },
+        {
+          routeId: routes[0]._id,
+          departureTime: new Date(currentDate.setHours(14, 0, 0, 0)),
+          arrivalTime: new Date(currentDate.getTime() + 3 * 60 * 60 * 1000),
+          price: 300000,
+          vehicleType: 'sleeping',
+          vehicleCategory: 'sleeper',
+          capacity: 40,
+          seatLayout: '2-1-2',
+          businessId: businessUsers[0]._id,
+          status: 'active'
+        },
+        {
+          routeId: routes[1] ? routes[1]._id : routes[0]._id,
+          departureTime: new Date(currentDate.setHours(20, 0, 0, 0)),
+          arrivalTime: new Date(currentDate.getTime() + 6 * 60 * 60 * 1000),
+          price: 500000,
+          vehicleType: 'sitting',
+          vehicleCategory: 'limousine',
+          capacity: 12,
+          seatLayout: '2-1',
+          businessId: businessUsers[0]._id,
+          status: 'active'
+        }
+      ]
+      
+      sampleSchedules.push(...schedulesPerDay)
+    }
 
     // Generate seats for each schedule
     const schedulesWithSeats = sampleSchedules.map(schedule => ({
