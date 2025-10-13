@@ -30,6 +30,10 @@ const routeSchema = new mongoose.Schema({
       type: String,
       required: true
     },
+    coordinates: { // NEW: Lat/Lng for map
+      lat: { type: Number, required: false },
+      lng: { type: Number, required: false }
+    },
     type: {
       type: String,
       enum: ['bus_station', 'office', 'landmark', 'highway'],

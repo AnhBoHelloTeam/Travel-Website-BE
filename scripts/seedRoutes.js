@@ -12,6 +12,7 @@ const sampleRoutes = [
       {
         name: 'Bến xe Đà Nẵng',
         address: '123 Lê Duẩn, Hải Châu, Đà Nẵng',
+        coordinates: { lat: 16.068, lng: 108.214 },
         type: 'bus_station',
         order: 1,
         estimatedTime: 0,
@@ -20,6 +21,7 @@ const sampleRoutes = [
       {
         name: 'Văn phòng Tân Quang Dũng - Đà Nẵng',
         address: '456 Nguyễn Văn Linh, Thanh Khê, Đà Nẵng',
+        coordinates: { lat: 16.060, lng: 108.199 },
         type: 'office',
         order: 2,
         estimatedTime: 15,
@@ -28,6 +30,7 @@ const sampleRoutes = [
       {
         name: 'Bến xe Huế',
         address: '789 An Dương Vương, Huế',
+        coordinates: { lat: 16.449, lng: 107.595 },
         type: 'bus_station',
         order: 3,
         estimatedTime: 90,
@@ -36,6 +39,7 @@ const sampleRoutes = [
       {
         name: 'Văn phòng Tân Quang Dũng - Huế',
         address: '321 Lê Lợi, Huế',
+        coordinates: { lat: 16.466, lng: 107.594 },
         type: 'office',
         order: 4,
         estimatedTime: 105,
@@ -44,6 +48,7 @@ const sampleRoutes = [
       {
         name: 'Bến xe Quảng Trị',
         address: '654 Hùng Vương, Quảng Trị',
+        coordinates: { lat: 16.748, lng: 107.190 },
         type: 'bus_station',
         order: 5,
         estimatedTime: 180,
@@ -61,6 +66,7 @@ const sampleRoutes = [
       {
         name: 'Bến xe Miền Đông',
         address: '123 Đinh Bộ Lĩnh, Bình Thạnh, HCM',
+        coordinates: { lat: 10.803, lng: 106.713 },
         type: 'bus_station',
         order: 1,
         estimatedTime: 0,
@@ -69,6 +75,7 @@ const sampleRoutes = [
       {
         name: 'Văn phòng Phương Trang - HCM',
         address: '456 Cách Mạng Tháng 8, Quận 10, HCM',
+        coordinates: { lat: 10.776, lng: 106.667 },
         type: 'office',
         order: 2,
         estimatedTime: 30,
@@ -77,6 +84,7 @@ const sampleRoutes = [
       {
         name: 'Trạm dừng chân Đồng Nai',
         address: '789 Quốc lộ 1A, Biên Hòa, Đồng Nai',
+        coordinates: { lat: 10.944, lng: 106.822 },
         type: 'landmark',
         order: 3,
         estimatedTime: 120,
@@ -85,6 +93,7 @@ const sampleRoutes = [
       {
         name: 'Bến xe Đà Lạt',
         address: '321 Phạm Ngũ Lão, Đà Lạt',
+        coordinates: { lat: 11.943, lng: 108.441 },
         type: 'bus_station',
         order: 4,
         estimatedTime: 360,
