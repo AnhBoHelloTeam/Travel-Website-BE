@@ -36,6 +36,24 @@ const listSchedules = async (req, res) => {
       filters.departureTime = { $gte: start, $lte: end };
     }
 
+    // Route filtering by from/to cities
+    if (req.query.from || req.query.to) {
+      const Route = require('../models/Route');
+      const routeFilters = {};
+      if (req.query.from) routeFilters.from = new RegExp(req.query.from, 'i');
+      if (req.query.to) routeFilters.to = new RegExp(req.query.to, 'i');
+      
+      const matchingRoutes = await Route.find(routeFilters).select('_id');
+      const routeIds = matchingRoutes.map(route => route._id);
+      
+      if (routeIds.length > 0) {
+        filters.routeId = { $in: routeIds };
+      } else {
+        // No matching routes found, return empty result
+        filters.routeId = { $in: [] };
+      }
+    }
+
     const pageNum = Math.max(parseInt(page, 10), 1);
     const pageSize = Math.min(Math.max(parseInt(limit, 10), 1), 100);
 
