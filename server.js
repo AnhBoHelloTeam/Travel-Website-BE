@@ -17,13 +17,27 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
-});
-app.use('/api/', limiter);
+// Rate limiting (relaxed in development and for read-only endpoints)
+if (process.env.NODE_ENV !== 'development') {
+  const limiter = rateLimit({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 500, // higher threshold to reduce false positives
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: 'Too many requests from this IP, please try again later.'
+  });
+
+  // Conditional limiter: skip public read-heavy endpoints
+  app.use('/api/', (req, res, next) => {
+    const isReadOnly = req.method === 'GET' && (
+      req.path.startsWith('/schedules') ||
+      req.path.startsWith('/routes') ||
+      req.path.startsWith('/admin')
+    );
+    if (isReadOnly) return next();
+    return limiter(req, res, next);
+  });
+}
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
