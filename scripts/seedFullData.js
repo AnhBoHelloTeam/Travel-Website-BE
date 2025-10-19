@@ -438,7 +438,9 @@ const seedFullData = async () => {
           name: stopData.name,
           address: stopData.address,
           estimatedTime: stopData.estimatedTime,
-          order: stopData.order
+          order: stopData.order,
+          coordinates: stopData.coordinates,
+          type: stopData.type
         });
       }
       console.log(`Created ${stops.length} stops for route ${route.from} -> ${route.to}`);

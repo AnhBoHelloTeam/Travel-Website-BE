@@ -166,7 +166,16 @@ const createSchedule = async (req, res) => {
 // GET /api/schedules/:id
 const getScheduleById = async (req, res) => {
   try {
-    const schedule = await Schedule.findById(req.params.id);
+    const schedule = await Schedule.findById(req.params.id)
+      .populate({
+        path: 'routeId',
+        select: 'from to distance duration stops'
+      })
+      .populate({
+        path: 'businessId',
+        select: 'name status rating'
+      });
+      
     if (!schedule) {
       return res.status(404).json({ success: false, message: 'Schedule not found' });
     }

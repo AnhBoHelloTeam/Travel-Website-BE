@@ -92,7 +92,7 @@ router.get('/:id/stops', async (req, res) => {
     
     res.json({ 
       success: true, 
-      data: stops 
+      data: { stops } 
     })
   } catch (error) {
     console.error('Get route stops error:', error)

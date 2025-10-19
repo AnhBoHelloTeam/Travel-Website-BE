@@ -25,6 +25,15 @@ const routeStopSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 1
+  },
+  coordinates: {
+    lat: { type: Number },
+    lng: { type: Number }
+  },
+  type: {
+    type: String,
+    enum: ['bus_station', 'office', 'landmark', 'highway'],
+    default: 'bus_station'
   }
 }, {
   timestamps: true
