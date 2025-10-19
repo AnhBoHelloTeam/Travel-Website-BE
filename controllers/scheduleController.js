@@ -57,11 +57,25 @@ const listSchedules = async (req, res) => {
     const pageNum = Math.max(parseInt(page, 10), 1);
     const pageSize = Math.min(Math.max(parseInt(limit, 10), 1), 100);
 
+    // Only show schedules from approved businesses
     const [items, total] = await Promise.all([
       Schedule.find(filters)
+        .populate({
+          path: 'routeId',
+          select: 'from to distance duration stops',
+          match: { isActive: true }
+        })
+        .populate({
+          path: 'businessId',
+          select: 'name status',
+          match: { status: 'approved' }
+        })
         .sort(sort)
         .skip((pageNum - 1) * pageSize)
-        .limit(pageSize),
+        .limit(pageSize)
+        .then(results => results.filter(schedule => 
+          schedule.routeId && schedule.businessId // Only include if both route and business are valid
+        )),
       Schedule.countDocuments(filters)
     ]);
 
@@ -90,9 +104,26 @@ const createSchedule = async (req, res) => {
     }
 
     const payload = { ...req.body };
-    // Enforce business ownership
+    // Enforce business ownership and check business status
     if (req.user && req.user.role === 'business') {
-      payload.businessId = String(req.user._id);
+      const Business = require('../models/Business');
+      const business = await Business.findOne({ ownerId: req.user._id });
+      
+      if (!business) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Business profile not found. Please create your business profile first.' 
+        });
+      }
+      
+      if (business.status !== 'approved') {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Your business is not approved yet. Please wait for admin approval before creating schedules.' 
+        });
+      }
+      
+      payload.businessId = business._id;
     }
     // Auto generate seats by capacity if not provided
     if ((!payload.seats || payload.seats.length === 0) && payload.capacity) {

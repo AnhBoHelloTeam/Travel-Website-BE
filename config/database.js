@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
-const redis = require('redis');
 
 // MongoDB Connection
 const connectMongoDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/travel-website', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -15,36 +14,11 @@ const connectMongoDB = async () => {
   }
 };
 
-// Redis Connection
-let redisClient;
-const connectRedis = async () => {
-  try {
-    redisClient = redis.createClient({
-      url: process.env.REDIS_URL
-    });
-    
-    redisClient.on('error', (err) => {
-      console.error('Redis Client Error:', err);
-    });
-    
-    redisClient.on('connect', () => {
-      console.log('Redis Connected');
-    });
-    
-    await redisClient.connect();
-  } catch (error) {
-    console.error('Redis connection error:', error);
-    process.exit(1);
-  }
-};
-
-// Initialize all database connections
+// Initialize database connection
 const connectDatabases = async () => {
   await connectMongoDB();
-  await connectRedis();
 };
 
 module.exports = {
-  connectDatabases,
-  redisClient: () => redisClient
+  connectDatabases
 };

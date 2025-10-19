@@ -15,7 +15,11 @@ router.get('/', async (req, res) => {
     const pageSize = Math.min(Math.max(parseInt(limit, 10), 1), 200)
 
     const [items, total] = await Promise.all([
-      Route.find(filter).sort(sort).skip((pageNum - 1) * pageSize).limit(pageSize),
+      Route.find(filter)
+        .populate('stops')
+        .sort(sort)
+        .skip((pageNum - 1) * pageSize)
+        .limit(pageSize),
       Route.countDocuments(filter)
     ])
 
@@ -25,9 +29,54 @@ router.get('/', async (req, res) => {
   }
 })
 
+// GET /api/routes/:id - Get specific route details
+router.get('/:id', async (req, res) => {
+  try {
+    const route = await Route.findById(req.params.id)
+      .populate('stops')
+    
+    if (!route) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Route not found' 
+      })
+    }
+    
+    // Get additional stops from RouteStop collection
+    const RouteStop = require('../models/RouteStop')
+    const additionalStops = await RouteStop.find({ 
+      routeId: req.params.id
+    }).sort({ order: 1 })
+    
+    // Combine route stops with additional stops
+    const allStops = [
+      ...(route.stops || []),
+      ...additionalStops
+    ].sort((a, b) => (a.order || 0) - (b.order || 0))
+    
+    const routeWithStops = {
+      ...route.toObject(),
+      stops: allStops
+    }
+    
+    res.json({ 
+      success: true, 
+      data: routeWithStops 
+    })
+  } catch (error) {
+    console.error('Get route error:', error)
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch route' 
+    })
+  }
+})
+
 // GET /api/routes/:id/stops - Get stops for a specific route
 router.get('/:id/stops', async (req, res) => {
   try {
+    const RouteStop = require('../models/RouteStop')
+    
     const route = await Route.findById(req.params.id)
     if (!route) {
       return res.status(404).json({ 
@@ -36,14 +85,14 @@ router.get('/:id/stops', async (req, res) => {
       })
     }
     
-    // Return only active stops, sorted by order
-    const activeStops = route.stops
-      .filter(stop => stop.isActive)
-      .sort((a, b) => a.order - b.order)
+    // Get stops from RouteStop collection
+    const stops = await RouteStop.find({ 
+      routeId: req.params.id
+    }).sort({ order: 1 })
     
     res.json({ 
       success: true, 
-      data: activeStops 
+      data: stops 
     })
   } catch (error) {
     console.error('Get route stops error:', error)

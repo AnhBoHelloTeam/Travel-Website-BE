@@ -6,12 +6,23 @@ const User = require('../models/User')
 const getMySchedules = async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query
-    const businessId = String(req.user._id)
+    
+    // Find business by ownerId
+    const Business = require('../models/Business')
+    const business = await Business.findOne({ ownerId: req.user._id })
+    
+    if (!business) {
+      return res.status(404).json({
+        success: false,
+        message: 'Business profile not found'
+      })
+    }
 
-    const filter = { businessId }
+    const filter = { businessId: business._id }
     if (status) filter.status = status
 
     const schedules = await Schedule.find(filter)
+      .populate('routeId', 'from to distance duration')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)

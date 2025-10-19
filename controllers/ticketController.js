@@ -1,12 +1,8 @@
 const Ticket = require('../models/Ticket');
 const Schedule = require('../models/Schedule');
-const { redisClient } = require('../config/database');
-
-// Helper: Redis key for seat lock
-const seatLockKey = (scheduleId, seatNumber) => `seat_lock:${scheduleId}:${seatNumber}`;
 
 // POST /api/tickets
-// Reserve a seat: set Redis lock for 5 minutes and create a pending ticket
+// Create a ticket (simplified version without Redis)
 const createTicket = async (req, res) => {
   try {
     const { scheduleId, seatNumber, passengerInfo, paymentInfo, pickupPoint, dropoffPoint } = req.body;
@@ -22,21 +18,17 @@ const createTicket = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Seat not found on this schedule' });
     }
 
-    // Check seat lock in Redis
-    const client = redisClient();
-    const lockKey = seatLockKey(scheduleId, seatNumber);
-    const existingLock = await client.get(lockKey);
-    if (existingLock) {
-      return res.status(409).json({ success: false, message: 'Seat is temporarily locked, please try another seat or wait' });
+    if (!seat.isAvailable) {
+      return res.status(409).json({ success: false, message: 'Seat is not available' });
     }
 
-    // Also ensure not already booked in DB (status confirmed)
-    const existingConfirmed = await Ticket.findOne({ scheduleId, seatNumber, status: { $in: ['pending', 'confirmed'] } });
-    if (existingConfirmed) {
+    // Check if seat is already booked
+    const existingTicket = await Ticket.findOne({ scheduleId, seatNumber, status: { $in: ['pending', 'confirmed'] } });
+    if (existingTicket) {
       return res.status(409).json({ success: false, message: 'Seat is already reserved or booked' });
     }
 
-    // Create pending ticket (expiresAt set by model TTL index)
+    // Create ticket
     const ticket = await Ticket.create({
       userId: req.user._id,
       scheduleId,
@@ -48,8 +40,12 @@ const createTicket = async (req, res) => {
       dropoffPoint
     });
 
-    // Lock seat in Redis for 5 minutes (300 seconds)
-    await client.set(lockKey, ticket._id.toString(), { EX: 300, NX: true });
+    // Update seat availability in schedule
+    const seatIndex = schedule.seats.findIndex((s) => s.seatNumber === seatNumber);
+    if (seatIndex !== -1) {
+      schedule.seats[seatIndex].isAvailable = false;
+      await schedule.save();
+    }
 
     res.status(201).json({ success: true, data: ticket });
   } catch (err) {
@@ -94,15 +90,12 @@ const confirmPayment = async (req, res) => {
 
     // Update ticket status and payment info
     ticket.status = 'confirmed';
-    ticket.paymentInfo.status = 'completed';
-    ticket.paymentInfo.transactionId = transactionId;
-    ticket.paymentInfo.paidAt = new Date();
+    if (ticket.paymentInfo) {
+      ticket.paymentInfo.status = 'completed';
+      ticket.paymentInfo.transactionId = transactionId;
+      ticket.paymentInfo.paidAt = new Date();
+    }
     await ticket.save();
-
-    // Remove Redis lock
-    const client = redisClient();
-    const lockKey = seatLockKey(ticket.scheduleId, ticket.seatNumber);
-    await client.del(lockKey);
 
     res.json({ success: true, data: ticket });
   } catch (err) {
@@ -131,10 +124,15 @@ const cancelTicket = async (req, res) => {
     };
     await ticket.save();
 
-    // Remove Redis lock if exists
-    const client = redisClient();
-    const lockKey = seatLockKey(ticket.scheduleId, ticket.seatNumber);
-    await client.del(lockKey);
+    // Make seat available again
+    const schedule = await Schedule.findById(ticket.scheduleId);
+    if (schedule) {
+      const seatIndex = schedule.seats.findIndex((s) => s.seatNumber === ticket.seatNumber);
+      if (seatIndex !== -1) {
+        schedule.seats[seatIndex].isAvailable = true;
+        await schedule.save();
+      }
+    }
 
     res.json({ success: true, data: ticket });
   } catch (err) {
