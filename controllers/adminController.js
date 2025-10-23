@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Ticket = require('../models/Ticket');
 
 // GET /api/admin/users
 const listUsers = async (req, res) => {
@@ -54,7 +55,44 @@ const listBusinesses = async (req, res) => {
   }
 };
 
+// GET /api/admin/tickets
+const listTickets = async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20, sort = '-createdAt' } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+
+    const pageNum = Math.max(parseInt(page, 10), 1);
+    const pageSize = Math.min(Math.max(parseInt(limit, 10), 1), 100);
+
+    const [items, total] = await Promise.all([
+      Ticket.find(filter)
+        .populate('userId', 'email profile')
+        .populate('scheduleId', 'departureTime arrivalTime price')
+        .sort(sort)
+        .skip((pageNum - 1) * pageSize)
+        .limit(pageSize),
+      Ticket.countDocuments(filter)
+    ]);
+
+    res.json({ 
+      success: true, 
+      data: items, 
+      pagination: { 
+        page: pageNum, 
+        limit: pageSize, 
+        total, 
+        totalPages: Math.ceil(total / pageSize) 
+      } 
+    });
+  } catch (err) {
+    console.error('Admin listTickets error:', err);
+    res.status(500).json({ success: false, message: 'Failed to list tickets' });
+  }
+};
+
 module.exports = {
   listUsers,
-  listBusinesses
+  listBusinesses,
+  listTickets
 };

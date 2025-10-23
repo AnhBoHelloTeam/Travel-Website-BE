@@ -51,7 +51,18 @@ const getMySchedules = async (req, res) => {
 // Thống kê doanh thu và vé
 const getBusinessStats = async (req, res) => {
   try {
-    const businessId = String(req.user._id)
+    // Find business by ownerId
+    const Business = require('../models/Business')
+    const business = await Business.findOne({ ownerId: req.user._id })
+    
+    if (!business) {
+      return res.status(404).json({
+        success: false,
+        message: 'Business profile not found'
+      })
+    }
+
+    const businessId = business._id
 
     // Tổng doanh thu
     const revenueResult = await Ticket.aggregate([
@@ -195,13 +206,14 @@ const updateBusinessProfile = async (req, res) => {
 // Lấy thông tin business
 const getBusinessProfile = async (req, res) => {
   try {
-    const businessId = req.user._id
-
-    const business = await User.findById(businessId)
+    // Find business by ownerId
+    const Business = require('../models/Business')
+    const business = await Business.findOne({ ownerId: req.user._id })
+    
     if (!business) {
       return res.status(404).json({
         success: false,
-        message: 'Business not found'
+        message: 'Business profile not found'
       })
     }
 
