@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Business = require('../models/Business');
 const { generateTokenPair } = require('../utils/jwt');
 
 // Register new user
@@ -24,6 +25,25 @@ const register = async (req, res) => {
     });
 
     await user.save();
+
+    // If user is business, create business profile
+    if (role === 'business') {
+      const business = new Business({
+        name: profile?.firstName && profile?.lastName 
+          ? `${profile.firstName} ${profile.lastName}` 
+          : 'Business Name',
+        license: `LIC${Date.now()}`,
+        email: email,
+        phone: profile?.phone || '',
+        address: profile?.address || '',
+        description: 'New business registration',
+        services: ['sitting'],
+        status: 'pending',
+        ownerId: user._id
+      });
+      
+      await business.save();
+    }
 
     // Generate tokens
     const tokens = generateTokenPair(user);
